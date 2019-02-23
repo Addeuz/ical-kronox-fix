@@ -75,7 +75,8 @@ UIkit.util.ready(function () {
 						courseListItemDiv.appendChild(courseNameSpanDiv)
 
 						let courseNameSpan = document.createElement('span')
-						courseNameSpan.classList.add('uk-flex', 'uk-flex-middle', 'uk-height-1-1')
+						courseNameSpan.classList.add('uk-flex', 'uk-flex-middle', 'uk-height-1-1', 'courseNameSpan')
+						courseNameSpan.setAttribute('inputId', resultIndex)
 						courseNameSpan.appendChild(document.createTextNode(result))
 						courseNameSpanDiv.appendChild(courseNameSpan)
 
@@ -104,7 +105,8 @@ UIkit.util.ready(function () {
 						let editInputName = document.createElement('input')
 						editInputName.setAttribute('id', 'editInput'+resultIndex)
 						editInputName.setAttribute('type', 'text')
-						editInputName.classList.add('uk-input')
+						editInputName.setAttribute('inputId', resultIndex)
+						editInputName.classList.add('uk-input', 'editInputName')
 						editInputName.style.width = "1000px"
 						editInputNameDiv.appendChild(editInputName)
 
@@ -114,10 +116,27 @@ UIkit.util.ready(function () {
 
 						let editSaveButton = document.createElement('button')
 						editSaveButton.setAttribute('id', 'saveEditButton'+resultIndex)
-						editSaveButton.classList.add('uk-button', 'uk-button-primary', 'uk-margin-remove')
+						editSaveButton.setAttribute('inputId', resultIndex)
+						editSaveButton.classList.add('uk-button', 'uk-button-primary', 'uk-margin-remove', 'editSaveButton')
 						editSaveButton.innerHTML = 'Spara'
 						editSaveButtonDiv.appendChild(editSaveButton)
 						}
+					}
+					// Selecting the edit-save buttons to add eventListener to it.
+					const editButtons = [].slice.call(document.querySelectorAll('.editSaveButton'))
+					const courseNames = [].slice.call(document.querySelectorAll('.courseNameSpan'))
+					console.log(editButtons)
+					console.log(courseNames)
+					for(let editButton of editButtons) {
+						editButton.addEventListener('click', event => {
+							// Getting the inputId from the button
+							const inputId = event.target.attributes[1].nodeValue
+							// Getting the value in the input field
+							const inputValue = document.getElementById('editInput'+inputId).value
+							const courseNameSpan = courseNames[inputId]
+							// Putting value in the input to the course name
+							courseNameSpan.innerHTML = inputValue
+						})
 					}
 					inputArea.setAttribute('readonly', '')
 				} else {
