@@ -1,3 +1,12 @@
 #inputArea:read-only {
 	background-color: rgba(0,0,0,0.2);
 }
+
+/* Setting the button color of the save button to be the bootstrap success button color. */
+#saveChangesButton {
+	background-color: #5cb85c;
+}
+
+#saveChangesButton:hover {
+	background-color: #449d44;
+}

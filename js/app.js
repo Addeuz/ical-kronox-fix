@@ -11,8 +11,9 @@ UIkit.util.ready(function () {
 		// Adding a spinner after a paste has been done in inputArea for visual effects,
 		// and letting the whole file load
 		let spinnerDiv = document.createElement("div")
-		spinnerDiv.className = "uk-align-center"
+		spinnerDiv.classList.add("uk-align-center", "uk-width-1-1")
 		spinnerDiv.setAttribute("uk-spinner","")
+		spinnerDiv.setAttribute("id","spinner")
 		targetDiv.appendChild(spinnerDiv)
 
 		// Removing it after 1.5s and adding all the found 'SUMMARY' strings that probably needs to be changed
@@ -48,7 +49,7 @@ UIkit.util.ready(function () {
 						return true
 					}
 				})
-			    if (results) {
+			  if (results) {
 					let h2Item = document.createElement('h2')
 					h2Item.classList.add('uk-heading-secondary')
 					h2Item.innerHTML = 'Hittade kurser'
@@ -108,6 +109,7 @@ UIkit.util.ready(function () {
 						editInputName.setAttribute('inputId', resultIndex)
 						editInputName.classList.add('uk-input', 'editInputName')
 						editInputName.style.width = "1000px"
+						editInputName.value = courseNameSpan.innerHTML
 						editInputNameDiv.appendChild(editInputName)
 
 						let editSaveButtonDiv = document.createElement('div')
@@ -120,13 +122,30 @@ UIkit.util.ready(function () {
 						editSaveButton.classList.add('uk-button', 'uk-button-primary', 'uk-margin-remove', 'editSaveButton')
 						editSaveButton.innerHTML = 'Spara'
 						editSaveButtonDiv.appendChild(editSaveButton)
-						}
 					}
+				}
 					// Selecting the edit-save buttons to add eventListener to it.
-					const editButtons = [].slice.call(document.querySelectorAll('.editSaveButton'))
 					const courseNames = [].slice.call(document.querySelectorAll('.courseNameSpan'))
-					console.log(editButtons)
-					console.log(courseNames)
+					const editButtons = [].slice.call(document.querySelectorAll('.editSaveButton'))
+					const editInputs = [].slice.call(document.querySelectorAll('.editInputName'))
+
+					// Adding event listeners to the input when enter is pressed
+					for(let editInput of editInputs) {
+						editInput.addEventListener('keypress', event => {
+							let key = event.which || event.keyCode
+							if (key == 13)  { // Enter button
+								// Getting the inputId from the index of the editInput of all the inputs
+								const inputId = editInputs.indexOf(editInput)
+								// Getting the value in the input field
+								const inputValue = document.getElementById('editInput'+inputId).value
+								const courseNameSpan = courseNames[inputId]
+								// Putting value in the input to the course name
+								courseNameSpan.innerHTML = inputValue
+							}
+						})
+					}
+
+					// Adding event listeners to the input when the save button is clicked
 					for(let editButton of editButtons) {
 						editButton.addEventListener('click', event => {
 							// Getting the inputId from the button
@@ -138,6 +157,56 @@ UIkit.util.ready(function () {
 							courseNameSpan.innerHTML = inputValue
 						})
 					}
+
+					let saveChangesButton = document.createElement('button')
+					saveChangesButton.classList.add('uk-button', 'uk-button-primary', 'uk-button-large', 'uk-align-center', 'saveChangesButton')
+					saveChangesButton.setAttribute('id', 'saveChangesButton')
+					saveChangesButton.innerHTML = 'Spara ändringar'
+					targetDiv.appendChild(saveChangesButton)
+
+
+					// When the user is happy with all changes and presses the save changes button this block runs
+					// and take care of all the logic for replacing the new edited values into the correct line
+					saveChangesButton.addEventListener('click', event => {
+
+						const afterEditing = document.getElementById('afterEditing')
+						const spinnerTargetDiv = document.getElementById("afterEditingTextArea")
+						spinnerTargetDiv.appendChild(spinnerDiv)
+						afterEditing.removeAttribute('hidden')
+						const scrollTo = document.getElementById('scrollTo')
+						scrollTo.scrollIntoView({behavior: "smooth"})
+
+						setTimeout(function () {
+							spinnerTargetDiv.removeChild(spinnerDiv)
+
+							const copyInput = document.getElementById("copyInput");
+
+							copyInput.removeAttribute('hidden')
+							const newNames = document.querySelectorAll('.courseNameSpan')
+
+							// Make the calculations here
+							for (let i = 0; i < inputLines.length; i++) {
+								const inputLine = inputLines[i];
+								if (inputLine.slice(0,7) == 'SUMMARY') {
+									for (let j = 0; j < newNames.length; j++) {
+										const newName = newNames[j].innerHTML
+										if (inputLine.slice(18,25) == newName.slice(0,7)) {
+											inputLines[i] = 'SUMMARY:' + newName
+										}
+									}
+								}
+							}
+							// Push out the input lines to afterEditingTextArea
+							for(let newInputLine of inputLines) {
+								if (newInputLine == 'END:VCALENDAR') {
+									copyInput.value += newInputLine
+									continue
+								}
+								copyInput.value += newInputLine + '\n'
+							}
+						}, 1500)
+					})
+
 					inputArea.setAttribute('readonly', '')
 				} else {
 					let h4Item = document.createElement('h4')
